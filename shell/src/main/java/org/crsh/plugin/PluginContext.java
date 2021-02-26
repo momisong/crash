@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -94,7 +95,14 @@ public final class PluginContext {
       FS confFS,
       ClassLoader loader) throws NullPointerException {
     this(
-        Executors.newFixedThreadPool(20),
+        Executors.newFixedThreadPool(20, new ThreadFactory() {
+          @Override
+          public Thread newThread(Runnable runnable) {
+            Thread thread = new Thread(runnable);
+            thread.setName("CRaSH_Worker");
+            return thread;
+          }
+        }),
         new ScheduledThreadPoolExecutor(1),
         discovery,
         attributes,
