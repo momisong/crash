@@ -31,6 +31,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +70,9 @@ public final class PluginContext {
   /** . */
   private final PropertyManager propertyManager;
 
+  /** thread count */
+  private static final AtomicInteger counter = new AtomicInteger();
+
   /**
    * Create a new plugin context with preconfigured executor and scanner, this is equivalent to invoking:
    *
@@ -99,7 +103,7 @@ public final class PluginContext {
           @Override
           public Thread newThread(Runnable runnable) {
             Thread thread = new Thread(runnable);
-            thread.setName("CRaSH_Worker");
+            thread.setName("CRaSH_Worker_" + counter.incrementAndGet());
             return thread;
           }
         }),
@@ -325,7 +329,7 @@ public final class PluginContext {
       if (refreshRate != null && refreshRate > 0) {
         TimeUnit tu = timeUnit != null ? timeUnit : TimeUnit.SECONDS;
         scannerFuture = scanner.scheduleWithFixedDelay(new Runnable() {
-          public void run() {
+          @Override public void run() {
             refresh();
           }
         }, 0, refreshRate, tu);
